@@ -1,0 +1,39 @@
+{
+  "name": "LumnySA CAPS Study Companion",
+  "short_name": "LumnySA",
+  "description": "An interactive, AI-powered CAPS study companion designed to empower Grade 10-12 South African learners through personalized notes, document analysis, virtual study rooms, and multi-user parent dashboards.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#121214",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lumnysa_icon.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/lumnysa_icon.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/lumnysa_icon.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Virtual Study Room",
+      "short_name": "Study Room",
+      "description": "Join the interactive virtual study room with live widgets",
+      "url": "/?tab=virtual-room"
+    }
+  ]
+}

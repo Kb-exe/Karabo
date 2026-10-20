@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LumnySA (Lumina SA) - Grade 12 CAPS Past Papers &amp; Mzansi Tutor</title>
+    <meta name="description" content="LumnySA (Lumina SA) - A dedicated Grade 12 CAPS study companion featuring official NSC past exam papers, marking memorandums, and real-time Mzansi Tutor AI problem solving for South African matriculants." />
+    <!-- OpenGraph Tags -->
+    <meta property="og:title" content="LumnySA (Lumina SA) - Grade 12 CAPS Past Papers &amp; Mzansi Tutor" />
+    <meta property="og:description" content="South Africa Grade 12 CAPS Past Papers, official marking memorandums, and real-time Mzansi Tutor AI study companion for matriculants." />
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#121214" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LumnySA" />
+    <link rel="apple-touch-icon" href="/lumnysa_icon.jpg" />
+    <!-- Manifest Link -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((reg) => {
+              console.log('[Service Worker] Registered successfully:', reg.scope);
+            })
+            .catch((err) => {
+              console.error('[Service Worker] Registration failed:', err);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
+

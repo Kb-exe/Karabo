@@ -1,0 +1,8 @@
+{
+  "name": "LumnySA",
+  "description": "LumnySA (Lumina SA) - South Africa Grade 12 CAPS Past Papers, official marking memorandums, and real-time Mzansi Tutor AI study companion for matriculants.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUser(data) {
+      return data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && data.email.size() <= 200 &&
+             data.createdAt is string && data.createdAt.size() <= 64 &&
+             (!('initials' in data) || (data.initials is string && data.initials.size() <= 20)) &&
+             (!('username' in data) || (data.username is string && data.username.size() <= 60)) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 30)) &&
+             (!('phoneVerified' in data) || data.phoneVerified is bool) &&
+             (!('emailVerified' in data) || data.emailVerified is bool) &&
+             (!('schoolName' in data) || (data.schoolName is string && data.schoolName.size() <= 120)) &&
+             (!('province' in data) || (data.province is string && data.province.size() <= 60)) &&
+             (!('targetAggregate' in data) || (data.targetAggregate is string && data.targetAggregate.size() <= 40)) &&
+             (!('selectedSubjects' in data) || (data.selectedSubjects is list && data.selectedSubjects.size() <= 30)) &&
+             (!('isBanned' in data) || data.isBanned is bool) &&
+             (!('role' in data) || (data.role is string && (data.role == 'learner' || data.role == 'admin'))) &&
+             (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidBookmark(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid && data.userId == userId &&
+             data.questionText is string && data.questionText.size() <= 5000 &&
+             data.createdAt is string && data.createdAt.size() <= 64 &&
+             (!('subjectId' in data) || (data.subjectId is string && data.subjectId.size() <= 50)) &&
+             (!('paperTitle' in data) || (data.paperTitle is string && data.paperTitle.size() <= 200)) &&
+             (!('questionNumber' in data) || (data.questionNumber is string && data.questionNumber.size() <= 50)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 2000));
+    }
+
+    function isValidStudySession(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid && data.userId == userId &&
+             data.subject is string && data.subject.size() <= 100 &&
+             data.createdAt is string && data.createdAt.size() <= 64 &&
+             (!('durationMinutes' in data) || data.durationMinutes is number) &&
+             (!('questionsSolved' in data) || data.questionsSolved is number);
+    }
+
+    function isValidActivity(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid && data.userId == userId &&
+             data.type is string && (data.type == 'past_paper' || data.type == 'ai_prompt') &&
+             data.status is string && (data.status == 'in_progress' || data.status == 'completed') &&
+             data.title is string && data.title.size() <= 300 &&
+             data.lastUpdated is string && data.lastUpdated.size() <= 64;
+    }
+
+    // Users collection - Strict PII Protection: only the authenticated owner can read or write their profile
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUser(incoming());
+      allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUser(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly([
+                      'displayName', 'initials', 'username', 'phoneNumber', 'phoneVerified', 'emailVerified',
+                      'schoolName', 'province', 'targetAggregate', 'selectedSubjects', 'isBanned', 'role', 'updatedAt'
+                    ]);
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      // Subcollections for high scalability (O(1) lookups per user)
+      match /bookmarks/{bookmarkId} {
+        allow get, list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) &&
+                         request.auth.uid == userId && isValidBookmark(incoming(), userId);
+        allow update: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) &&
+                         request.auth.uid == userId && isValidBookmark(incoming(), userId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['notes']);
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) &&
+                         request.auth.uid == userId;
+      }
+
+      match /studySessions/{sessionId} {
+        allow get, list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(sessionId) &&
+                         request.auth.uid == userId && isValidStudySession(incoming(), userId);
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(sessionId) &&
+                         request.auth.uid == userId;
+      }
+
+      match /activities/{activityId} {
+        allow get, list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow create, update: if isSignedIn() && isValidId(userId) && isValidId(activityId) &&
+                                 request.auth.uid == userId && isValidActivity(incoming(), userId);
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(activityId) &&
+                         request.auth.uid == userId;
+      }
+    }
+  }
+}

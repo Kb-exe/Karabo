@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Grade 12 learner profile supporting over 1,000,000 matric students",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "initials": { "type": "string" },
+        "username": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "phoneVerified": { "type": "boolean" },
+        "emailVerified": { "type": "boolean" },
+        "schoolName": { "type": "string" },
+        "province": { "type": "string" },
+        "targetAggregate": { "type": "string" },
+        "selectedSubjects": { "type": "array" },
+        "isBanned": { "type": "boolean" },
+        "role": { "type": "string", "enum": ["learner", "admin"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "Saved past paper question or AI solved steps for revision",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "paperTitle": { "type": "string" },
+        "questionNumber": { "type": "string" },
+        "questionText": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "questionText", "createdAt"]
+    },
+    "StudySession": {
+      "title": "StudySession",
+      "description": "Record of Grade 12 past paper or AI tutoring study session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "questionsSolved": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subject", "createdAt"]
+    },
+    "Activity": {
+      "title": "Activity",
+      "description": "Record of past paper or AI prompt used, in-progress or finished by learner",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["past_paper", "ai_prompt"] },
+        "status": { "type": "string", "enum": ["in_progress", "completed"] },
+        "title": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "status", "title", "lastUpdated"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual matric learner profile with isolated PII"
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": "Bookmark",
+      "description": "Learner's saved exam questions"
+    },
+    "/users/{userId}/studySessions/{sessionId}": {
+      "schema": "StudySession",
+      "description": "Learner's practice session logs"
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "Activity",
+      "description": "Learner's used and unfinished papers and AI study prompts"
+    }
+  }
+}
